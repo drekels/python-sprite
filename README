@@ -1,15 +1,13 @@
-Personal Python distribution for Kevin Steffler
+Sprite creation and use for python
 
-https://github.com/drekels/pykfs
+https://github.com/drekels/python-sprite
 
-This repo contains personal python packages and scripts for Kevin Steffler and is not 
-intended for general use.  If you see something in here you like, let me know and
-I will make a seperate package.
+This repo contains the sprite python package, which is used for arranging 
+related images into atlases.  
 
 Features:
-* Image manipulation through pykfs.image_filter
-* Convenience scripts for git, searching for strings and viewing json
-* Framework for git hooks wirtten in python
+* Create image atlas with meta file from a set of images
+* Create and read animation meta files
 
 
 Dependencies
@@ -21,7 +19,7 @@ See requirements.txt
 Usage
 -----
 
-pip install --upgrade git+https://github.com/drekels/pykfs.git@STABLE
+pip install --upgrade git+https://github.com/drekels/python-sprite.git@STABLE
 
 
 Known Issues
@@ -33,4 +31,4 @@ No known issues (mostly due to ignorance)
 Thanks
 ------
 
-To me!!!!
+No one to thank yet.

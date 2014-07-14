@@ -4,9 +4,12 @@ from contextlib import contextmanager
 
 class SpriteComponent(object):
 
-    def __init__(self, name, filepath, image=None, width=None, height=None, extra_meta=None):
+    def __init__(self, name, filepath=None, x=None, y=None, image=None, width=None,
+                 height=None, extra_meta=None):
         self.component_name = name
         self.filepath = filepath
+        self.x = x
+        self.y = y
         self._width = width
         self._height = height
         if image:
@@ -42,15 +45,16 @@ class SpriteComponent(object):
     @property
     @contextmanager
     def image(self):
-        try:
-            value = Image.open(self.filepath)
-        except IOError:
+        if not self.filepath:
             yield None
         else:
             try:
-                value = value.__enter__()
-                yield value
-            finally:
-                value.__exit__()
-
-
+                f = open(self.filepath)
+                value = Image.open(f)
+                try:
+                    value = value.__enter__()
+                    yield value
+                finally:
+                    value.__exit__()
+            except IOError:
+                yield None

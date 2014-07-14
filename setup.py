@@ -10,18 +10,17 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 
-import pykfs
-version = pykfs.get_version()
+import sprite
+version = sprite.get_version()
 
 
 setup(
-    name='pykfs',
+    name='python-sprite',
     version=version,
-    description="Kevin Steffler's python library",
+    description="Python Sprite Library",
     author='Kevin Steffler',
     author_email='kevin5steffler@gmail.com',
-    url='foobar',
-    packages=['pykfs', 'pykfs.git', 'pykfs.git.hook'],
-    scripts=['scripts/grollback', 'scripts/grebase', 'scripts/view_json', 'scripts/gref'],
+    url='https://github.com/drekels/python-sprite',
+    packages=['sprite'],
     install_requires=required,
 )
