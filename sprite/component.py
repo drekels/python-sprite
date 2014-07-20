@@ -89,9 +89,10 @@ class SpriteComponent(object):
         return (self.x, self.y)
 
     def calc_dimensions(self):
+        if not self.filepath:
+            return
         from PIL import Image
-        try:
-            with Image.open(self.filepath) as image:
+        image = Image.open(self.filepath)
+        with Image.open(self.filepath) as image:
+            if image:
                 self._width, self._height = image.size
-        except IOError:
-            pass

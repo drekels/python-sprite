@@ -1,25 +1,11 @@
 #!/usr/bin/env python
 
 
-ERRORTEXT = (
-    "Sorry, this script can only be run if pygame is installed. Please run using a python "
-    "instance with pygame installed, or download pygame from "
-    "'http://www.pygame.org/download.shtml' and try again."
-)
-
-
 import sys
 import os
 import datetime as dt
-from contextlib import contextmanager
-
-
-try:
-    import pygame
-    from pygame.locals import QUIT
-except ImportError:
-    print ERRORTEXT
-    sys.exit()
+import pygame
+from pygame.locals import QUIT
 
 
 DIRECTORY = os.path.dirname(__file__)
@@ -44,11 +30,11 @@ BLUE = (0, 0, 255)
 GREY = (100, 100, 100)
 
 
-
 IMG_DIR = os.path.join(os.path.dirname(__file__), "img")
 FRONT1 = os.path.join(IMG_DIR, "front1.png")
 FRONT2 = os.path.join(IMG_DIR, "front2.png")
 FRONT3 = os.path.join(IMG_DIR, "front3.png")
+
 
 class PygameSpriteComponent(SpriteComponent):
 
