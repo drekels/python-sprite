@@ -1,60 +1,97 @@
-from PIL import Image
-from contextlib import contextmanager
+class Rect(object):
+
+    def __init__(self, x, y, width=None, height=None):
+        if width is None:
+            x, y = x
+            width, height = y
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+    def __getstate__(self):
+        return {
+            'x': self.x,
+            'y': self.y,
+            'width': self.width,
+            'height': self.height
+        }
+
+    def __repr__(self):
+        return "Rect({x}, {y}, {width}, {height})".format(**self.__dict__)
+
+    def __unicode__(self):
+        return "({x}, {y}, {width}, {height})".format(**self.__dict__)
+
+    def __eq__(self, other):
+        for param in ["x", "y", "width", "height"]:
+            if getattr(self, param) != getattr(other, param):
+                return False
+        return True
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    @property
+    def position(self):
+        return self.x, self.y
+
+    @property
+    def size(self):
+        return self.width, self.height
 
 
 class SpriteComponent(object):
 
-    def __init__(self, name, filepath=None, x=None, y=None, image=None, width=None,
-                 height=None, extra_meta=None):
-        self.component_name = name
+    def __init__(self, name, filepath=None, rect=None, image=None, extra_meta=None):
+        self.name = name
         self.filepath = filepath
-        self.x = x
-        self.y = y
-        self._width = width
-        self._height = height
+        self._rect = rect
+        self._width, self._height = None, None
+        if rect:
+            self._width, self._height = rect.width, rect.height
         if image:
-            self._calc_dimensions(image)
+            self.calc_dimensions(image)
         self.extra_meta = extra_meta or {}
 
     def __unicode__(self):
         return self.component_name
 
+    def set_atlas_position(self, x, y=None):
+        if y is None:
+            x, y = x
+        self.rect = Rect(x, y, self.width, self.height)
+
+    @property
+    def rect(self):
+        return self._rect
+
     @property
     def width(self):
         if not hasattr(self, "_width") or not self._width:
-            with self.image as i:
-                if i:
-                    self._calc_dimensions(i)
+            self.calc_dimensions()
         return self._width
 
     @property
     def height(self):
         if not hasattr(self, "_height") or not self._height:
-            with self.image as i:
-                if i:
-                    self._calc_dimensions(i)
+            self.calc_dimensions()
         return self._height
 
     @property
     def size(self):
         return (self.width, self.height)
 
-    def _calc_dimensions(self, image):
-        self._width, self._height = image.size
-
     @property
-    @contextmanager
-    def image(self):
-        if not self.filepath:
-            yield None
-        else:
-            try:
-                f = open(self.filepath)
-                value = Image.open(f)
-                try:
-                    value = value.__enter__()
-                    yield value
-                finally:
-                    value.__exit__()
-            except IOError:
-                yield None
+    def atlas_position(self):
+        if self.x is None:
+            return None
+        return (self.x, self.y)
+
+    def calc_dimensions(self):
+        from PIL import Image
+        try:
+            with Image.open(self.filepath) as image:
+                self._width, self._height = image.size
+        except IOError:
+            pass
