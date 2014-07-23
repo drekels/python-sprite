@@ -5,6 +5,7 @@ import sys
 import os
 import datetime as dt
 import pygame
+import yaml
 from pygame.locals import QUIT
 
 
@@ -31,9 +32,7 @@ GREY = (100, 100, 100)
 
 
 IMG_DIR = os.path.join(os.path.dirname(__file__), "img")
-FRONT1 = os.path.join(IMG_DIR, "front1.png")
-FRONT2 = os.path.join(IMG_DIR, "front2.png")
-FRONT3 = os.path.join(IMG_DIR, "front3.png")
+ANIMATION_META = os.path.join(os.path.dirname(__file__), "animation_sample.yaml")
 
 
 class PygameSpriteComponent(SpriteComponent):
@@ -54,9 +53,25 @@ class PygameSpriteComponent(SpriteComponent):
 
 class PygameSpriteRenderer(pygame.sprite.Sprite):
 
-    def __init__(self, components, starting_component=None, position=None, multiplier=1):
+    @classmethod
+    def load_components(cls):
+        cls.components = {}
+        for filename in os.listdir(IMG_DIR):
+            component_name = filename.split(".")[0]
+            filepath = os.path.join(IMG_DIR, filename)
+            cls.components[component_name] = PygameSpriteComponent(
+                component_name, filepath=filepath
+            )
+
+
+    @classmethod
+    def get_component(cls, component_name):
+        if not hasattr(cls, "components"):
+            cls.load_components()
+        return cls.components[component_name]
+
+    def __init__(self, starting_component=None, position=None, multiplier=1):
         super(PygameSpriteRenderer, self).__init__()
-        self.components = dict([(component.name, component) for component in components])
         self.position_x, self.position_y = position or (0, 0)
         self.displacement_x, self.displacement_y = (0, 0)
         self.multiplier = multiplier
@@ -90,11 +105,12 @@ class PygameSpriteRenderer(pygame.sprite.Sprite):
     def top_left(self):
         return self.top_left_x, self.top_left_y
 
-    def set_component(self, component, **params):
-        self.component = self.components.get(component, False) or component
+    def set_component(self, component_name, **params):
+        self.component = self.get_component(component_name)
         self.image = self.component.image
         self.width, self.height = self.component.size
-        self.displacement_x, self.displacement_y = params.get("displacement", (0, 0))
+        self.displacement_x = params.get("displacement_x", 0) * 3
+        self.displacement_y = params.get("displacement_y", 0) * 3
         self.update_rect()
 
     def update_rect(self):
@@ -115,9 +131,10 @@ class SampleGame(object):
         game.run()
 
     def run(self):
-        self.create_sprite()
+        self.load_animations()
+        self.create_sprites()
         self.initialize_pygame()
-        self.start_animation()
+        self.start_animations()
         self.start_timer()
         self.run_game_loop()
 
@@ -129,38 +146,57 @@ class SampleGame(object):
         self.time_passed = now - self.last_time
         self.last_time = now
 
-    def create_sprite(self):
-        components = []
-        for name, filepath in [("front1", FRONT1), ("front2", FRONT2), ("front3", FRONT3)]:
-            components.append(PygameSpriteComponent(name, filepath=filepath))
-        self.sprite = PygameSpriteRenderer(components, starting_component="front1")
-        stages = [
-            SpriteAnimationStage(components[0], 0.2, displacement_y=-3),
-            SpriteAnimationStage(components[1], 0.4),
-            SpriteAnimationStage(components[0], 0.2, displacement_y=-3),
-            SpriteAnimationStage(components[2], 0.4),
-        ]
-        self.animation = SpriteAnimation("walk_front", stages)
+    def create_sprites(self):
+        self.front_sprite = PygameSpriteRenderer(starting_component="front1")
+        self.left_sprite = PygameSpriteRenderer(starting_component="left1")
 
-    def start_animation(self, extra_time=ZERO_TIME):
-        self.player = SpriteAnimationPlayer(self.sprite, self.animation)
-        self.player.add_end_callback(self.start_animation)
-        self.player.start_animation()
+    def load_animations(self):
+        with open(ANIMATION_META) as f:
+            data = yaml.load(f)
+        self.animations = {}
+        for animation_data in data["animations"]:
+            animation = SpriteAnimation.load(animation_data)
+            self.animations[animation.name] = animation
+
+    def start_animations(self):
+        self.start_left_animation()
+        self.start_front_animation()
+
+    def start_front_animation(self, extra_time=ZERO_TIME):
+        animation = self.animations["front-walk"]
+        self.front_player = SpriteAnimationPlayer(self.front_sprite, animation)
+        self.front_player.add_end_callback(self.start_front_animation)
+        self.front_player.start_animation()
+
+    def start_left_animation(self, extra_time=ZERO_TIME):
+        animation = self.animations["left-walk"]
+        self.left_player = SpriteAnimationPlayer(self.left_sprite, animation)
+        self.left_player.add_end_callback(self.start_left_animation)
+        self.left_player.start_animation()
 
     def initialize_pygame(self):
         pygame.init()
         pygame.display.set_caption('Pygame Animation Sample')
 
         self.window = pygame.display.set_mode((500, 400), 0, 32)
+        window_rect = self.window.get_rect()
+        halfwidth = window_rect.width / 2
+        left_rect = pygame.Rect(
+            window_rect.x, window_rect.y, halfwidth, window_rect.height)
+        right_rect = pygame.Rect(
+            window_rect.x + halfwidth, window_rect.y, halfwidth, window_rect.height
+        )
 
-        center = self.window.get_rect().center
-        self.sprite.set_position(center)
+        self.left_sprite.set_position(left_rect.center)
+        self.front_sprite.set_position(right_rect.center)
 
         self.group = pygame.sprite.Group()
-        self.group.add(self.sprite)
+        self.group.add(self.left_sprite)
+        self.group.add(self.front_sprite)
 
     def pass_animation_time(self, time):
-        self.player.pass_animation_time(time)
+        self.left_player.pass_animation_time(time)
+        self.front_player.pass_animation_time(time)
 
     def draw(self):
         self.window.fill(GREY)

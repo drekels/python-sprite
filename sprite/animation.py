@@ -14,6 +14,12 @@ ON_ANIMATION_END = "ON_ANIMATION_END"
 
 
 class SpriteAnimationStage(object):
+    params = [
+        {"name": "component_name"},
+        {"name": "duration"},
+        {"name": "displacement_x", "default": 0},
+        {"name": "displacement_y", "default": 0},
+    ]
 
     def __init__(self, component, duration, displacement_x=0, displacement_y=0):
         self.component = component
@@ -22,26 +28,47 @@ class SpriteAnimationStage(object):
         self.displacement_y = displacement_y
 
     def get_params(self):
-        return {
-            "displacement": (self.displacement_x, self.displacement_y)
-        }
+        return self.__getstate__()
+
+    def update_renderer(self, renderer):
+        renderer.set_component(**self.__getstate__())
+
+    def __getstate__(self):
+        state = {}
+        for param in self.params:
+            name = param["name"]
+            state[name] = getattr(self, name)
+        return state
+
+    def __setstate__(self, state):
+        for param in self.params:
+            if param["name"] in state:
+                value = state[param["name"]]
+            else:
+                if "default" not in param:
+                    raise AttributeError(
+                        "SpriteAnimationStage requires value for {0}".format(param["name"])
+                    )
+                value = param["default"]
+            setattr(self, param["name"], value)
 
 
-def get_animation_state(animation):
+def get_animation_state(animation, secondary_values=True):
     """ Return a dictionary containing all the animation data """
     stages = list(animation.get_stages())
     stages.sort(key=lambda x: x.order)
     state = {}
     state["stages"] = [stage.__getstate__() for stage in stages]
     state["name"] = animation.name
-    state["min_x"] = animation.min_x
-    state["max_x"] = animation.max_x
-    state["min_y"] = animation.min_y
-    state["max_y"] = animation.max_y
-    state["width"] = animation.width
-    state["height"] = animation.height
-    state["offset_x"] = animation.offset_x
-    state["offset_y"] = animation.offset_y
+    if secondary_values:
+        state["min_x"] = animation.min_x
+        state["max_x"] = animation.max_x
+        state["min_y"] = animation.min_y
+        state["max_y"] = animation.max_y
+        state["width"] = animation.width
+        state["height"] = animation.height
+        state["offset_x"] = animation.offset_x
+        state["offset_y"] = animation.offset_y
     return state
 
 
@@ -118,6 +145,12 @@ class SpriteAnimation(object):
     width = property(get_width)
     height = property(get_height)
 
+    @classmethod
+    def load(cls, state):
+        a = cls.__new__(cls)
+        a.__setstate__(state)
+        return a
+
     def __init__(self, name, stages=None):
         self.name = name
         self._stages = stages or []
@@ -125,6 +158,14 @@ class SpriteAnimation(object):
 
     def __unicode__(self):
         return self.name
+
+    def __setstate__(self, state):
+        self.name = state["name"]
+        self._stages = []
+        for stage in state["stages"]:
+            s = SpriteAnimationStage.__new__(SpriteAnimationStage)
+            s.__setstate__(stage)
+            self._stages.append(s)
 
     @property
     def stages(self):
@@ -152,7 +193,7 @@ class SpriteAnimationPlayer(object):
         except IndexError:
             self.end_animation(extra_time=extra_time)
         else:
-            self.renderer.set_component(self.stage.component, **self.stage.get_params())
+            self.stage.update_renderer(self.renderer)
             self.stage_time_remaining = dt.timedelta(seconds=self.stage.duration)
             self.pass_animation_time(extra_time)
 

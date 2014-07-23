@@ -1,0 +1,29 @@
+---
+animations:
+
+    - name: front-walk
+      stages: 
+          - component_name: front1
+            duration: 0.13
+            displacement_y: -1
+          - component_name: front2
+            duration: 0.3
+          - component_name: front1
+            duration: 0.13
+            displacement_y: -1
+          - component_name: front3
+            duration: 0.3
+    - name: left-walk
+      stages: 
+          - component_name: left1
+            duration: 0.2
+            displacement_x: 0
+          - component_name: left4
+            duration: 0.2
+            displacement_y: -1
+          - component_name: left2
+            duration: 0.2
+            displacement_x: -1
+          - component_name: left3
+            duration: 0.2
+            displacement_y: -1
