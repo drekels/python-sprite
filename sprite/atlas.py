@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw
-from sprite.component import SpriteComponent
+from sprite.component import SpriteComponent, Rect
 
 
 MIN_SIZE = (1024, 1024)
@@ -11,29 +11,6 @@ NAME_KEY = "name"
 RECT_KEY = "rect"
 
 
-class Rect(object):
-
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-    def __getstate__(self):
-        return {
-            'x': self.x,
-            'y': self.y,
-            'width': self.width,
-            'height': self.height
-        }
-
-    def __repr__(self):
-        return "Rect({x}, {y}, {width}, {height})".format(**self.__dict__)
-
-    def __unicode__(self):
-        return "({x}, {y}, {width}, {height})".format(**self.__dict__)
-
-
 class _ImageContainer(object):
 
     def __init__(self, rect):
@@ -43,7 +20,7 @@ class _ImageContainer(object):
     def add_to_child(self, child_index, component):
         added = False
         try:
-            added = self.children[0].add_component(component)
+            added = self.children[child_index].add_component(component)
         except AttributeError as e:
             if "add_component" not in str(e):
                 raise
@@ -70,6 +47,15 @@ class _ImageContainer(object):
             self.children = (_ImageContainer(rect1), _ImageContainer(rect2))
             return self.children[0].add_component(component)
 
+    def __unicode__(self):
+        if self.children:
+            return u"_ImageContainer({0}, {1}))".format(*self.children)
+        else:
+            return u"_ImageContainer(EMPTY)"
+
+    def __repr__(self):
+        return self.__unicode__()
+
 
 class Atlas(object):
 
@@ -87,7 +73,7 @@ class Atlas(object):
         if self._header:
             self._add_header()
         for name, info in oldcomponents.items():
-            self.add(name, info.img, extra_meta=info.extra_meta)
+            self.add_component(name, info.img, extra_meta=info.extra_meta)
 
     def _add_header(self):
         header = self._header.format(size="{0}x{1}".format(*self.size))
@@ -105,7 +91,7 @@ class Atlas(object):
         for s in lines:
             draw.text(position, s, fill=DEFAULT_HEADER_COLOR)
             position = (position[0], position[1] + lineheight)
-        self.add(SpriteComponent(HEADER_IMAGE_NAME, img))
+        self.add_component(SpriteComponent(HEADER_IMAGE_NAME, image=img))
 
     def _double_size(self):
         self.size = (self.size[0] * 2, self.size[1] * 2)
@@ -113,11 +99,11 @@ class Atlas(object):
     def add_component(self, component):
         if component.name in self.components:
             raise KeyError("Atlas component with name '{0}' already exists".format(component.name))
-        c = self.root_container.add_img(component)
+        c = self.root_container.add_component(component)
         if not c:
             self._double_size()
             self._reset()
-            self.add(component)
+            self.add_component(component)
         else:
             self.components[component.name] = component
 
@@ -127,6 +113,6 @@ class Atlas(object):
 
     def dump_atlas(self, filepath):
         a = Image.new("RGBA", self.size)
-        for component in self.component.values():
-            a.paste(component.img, (component.rect.x, component.rect.y))
+        for component in self.components.values():
+            a.paste(component.image, (component.rect.x, component.rect.y))
         a.save(filepath, format="PNG")

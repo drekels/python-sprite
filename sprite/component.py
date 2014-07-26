@@ -50,17 +50,31 @@ class SpriteComponent(object):
         self._width, self._height = None, None
         if rect:
             self._width, self._height = rect.width, rect.height
-        if image:
-            self.calc_dimensions(image)
+        self._image = image
         self.extra_meta = extra_meta or {}
 
     def __unicode__(self):
-        return self.component_name
+        return self.name
+
+    def __getstate__(self):
+        state = {"name": self.name}
+        if self.rect:
+            state["x"] = self.rect.x
+            state["y"] = self.rect.y
+        if self.width is not None:
+            state["width"] = self.width
+            state["height"] = self.height
+        return state
+
+    def get_meta(self):
+        state = self.__getstate__()
+        state.update(self.extra_meta)
+        return state
 
     def set_atlas_position(self, x, y=None):
         if y is None:
             x, y = x
-        self.rect = Rect(x, y, self.width, self.height)
+        self._rect = Rect(x, y, self.width, self.height)
 
     @property
     def rect(self):
@@ -88,11 +102,13 @@ class SpriteComponent(object):
             return None
         return (self.x, self.y)
 
+    @property
+    def image(self):
+        if not self._image and self.filepath:
+            from PIL import Image
+            self._image = Image.open(self.filepath)
+        return self._image
+
     def calc_dimensions(self):
-        if not self.filepath:
-            return
-        from PIL import Image
-        image = Image.open(self.filepath)
-        with Image.open(self.filepath) as image:
-            if image:
-                self._width, self._height = image.size
+        if self.image:
+            self._width, self._height = self.image.size

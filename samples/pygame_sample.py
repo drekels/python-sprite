@@ -1,4 +1,23 @@
 #!/usr/bin/env python
+""" PYGAME SAMPLE SPRITE
+
+This script creates an instance of pygame with a single window.  Inside the
+window, 2 sprites are rendered of a spearman walking in the left direction and
+the front direction.
+
+The image are loaded from the `samples/img` directory and their names are
+inferred from the filenames.  The animation details are stored in the
+`samples/animation_sample.yaml` file, with the names of the components
+corresponding to the file names.
+
+The game loop creates animation players to play each animation, and keeps
+track of time passing so that it can update them.  The animation players
+are given a callback that restarts the animations, so the animations run
+continuously.
+
+The `PygameSpriteRenderer` takes care of drawing the animation.  It
+does so at 3x the size of the original images.
+"""
 
 
 import sys
@@ -17,9 +36,7 @@ if (DIRECTORY.endswith("samples")):
     sys.path.append(PARENT_DIRECTORY)
 
 
-from sprite.animation import (
-    SpriteAnimationStage, SpriteAnimationPlayer, SpriteAnimation, ZERO_TIME
-)
+from sprite.animation import SpriteAnimationPlayer, SpriteAnimation, ZERO_TIME
 from sprite.component import SpriteComponent
 
 

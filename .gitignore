@@ -1,6 +1,7 @@
 ignore
 *.py[cod]
 MANIFEST
+samples/sample_atlas.*
 
 # C extensions
 *.so
