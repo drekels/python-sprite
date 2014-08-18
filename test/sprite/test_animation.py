@@ -2,7 +2,6 @@ import unittest2
 from sprite.component import SpriteComponent
 from sprite.animation import SpriteAnimation, SpriteAnimationStage
 import logging
-import os
 from test.sprite import (
     FRONT1, FRONT2, FRONT3, EXPECTED_FRONT_SIZE
 )

@@ -56,10 +56,11 @@ class PygameSpriteComponent(SpriteComponent):
 
     @property
     def image(self):
-        if not hasattr(self, "_image"):
+        if not self._image:
             self._image = pygame.image.load(self.filepath)
             rect = self._image.get_rect()
             width, height = rect.width, rect.height
+            print self._image
             self._image = pygame.transform.scale(self._image, (width*3, height*3))
         return self._image
 
