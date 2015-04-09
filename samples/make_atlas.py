@@ -23,6 +23,8 @@ META_PATH = os.path.join(DIRECTORY, "sample_atlas.json")
 
 
 
+
+
 def make_atlas():
     a = Atlas("SAMPLE SPRITE\n{size}", min_size=(128, 128))
     for filename in os.listdir(IMG_DIR):

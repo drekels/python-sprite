@@ -60,7 +60,6 @@ class PygameSpriteComponent(SpriteComponent):
             self._image = pygame.image.load(self.filepath)
             rect = self._image.get_rect()
             width, height = rect.width, rect.height
-            print self._image
             self._image = pygame.transform.scale(self._image, (width*3, height*3))
         return self._image
 
@@ -127,8 +126,8 @@ class PygameSpriteRenderer(pygame.sprite.Sprite):
         self.component = self.get_component(component_name)
         self.image = self.component.image
         self.width, self.height = self.component.size
-        self.displacement_x = params.get("displacement_x", 0) * 3
-        self.displacement_y = params.get("displacement_y", 0) * 3
+        self.displacement_x = params.get("displacement_x", 0) * self.multiplier
+        self.displacement_y = params.get("displacement_y", 0) * self.multiplier
         self.update_rect()
 
     def update_rect(self):

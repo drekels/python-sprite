@@ -40,10 +40,25 @@ class Rect(object):
     def size(self):
         return self.width, self.height
 
+    def __iter__(self):
+        yield self.x
+        yield self.y
+        yield self.width
+        yield self.height
+
+    def get_tuple(self):
+        return (x for x in self)
+
 
 class SpriteComponent(object):
 
-    def __init__(self, name, filepath=None, rect=None, image=None, extra_meta=None):
+    @classmethod
+    def from_meta(cls, meta):
+        value = cls()
+        value.__setstate__(meta)
+        return value
+
+    def __init__(self, name=None, filepath=None, rect=None, image=None, extra_meta=None):
         self.name = name
         self.filepath = filepath
         self._rect = rect
@@ -65,6 +80,12 @@ class SpriteComponent(object):
             state["width"] = self.width
             state["height"] = self.height
         return state
+
+    def __setstate__(self, state):
+        self.name = state['name']
+        self._width, self._height = state['width'], state['height']
+        self.set_atlas_position(state['x'], state['y'])
+
 
     def get_meta(self):
         state = self.__getstate__()
