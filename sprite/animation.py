@@ -144,6 +144,7 @@ class SpriteAnimation(object):
     offset = property(get_offset)
     width = property(get_width)
     height = property(get_height)
+    stage_class = SpriteAnimationStage
 
     @classmethod
     def load(cls, state):
@@ -163,7 +164,7 @@ class SpriteAnimation(object):
         self.name = state["name"]
         self._stages = []
         for stage in state["stages"]:
-            s = SpriteAnimationStage.__new__(SpriteAnimationStage)
+            s = self.stage_class.__new__(self.stage_class)
             s.__setstate__(stage)
             self._stages.append(s)
 
