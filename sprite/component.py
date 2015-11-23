@@ -79,13 +79,14 @@ class SpriteComponent(object):
         if self.width is not None:
             state["width"] = self.width
             state["height"] = self.height
+        state["extra_meta"] = self.extra_meta
         return state
 
     def __setstate__(self, state):
         self.name = state['name']
         self._width, self._height = state['width'], state['height']
         self.set_atlas_position(state['x'], state['y'])
-
+        self.extra_meta = state["extra_meta"]
 
     def get_meta(self):
         state = self.__getstate__()
