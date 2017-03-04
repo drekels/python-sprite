@@ -92,7 +92,6 @@ class SpriteComponent(object):
 
     def get_meta(self):
         state = self.__getstate__()
-        state.update(self.extra_meta)
         return state
 
     def set_atlas_position(self, x, y=None):

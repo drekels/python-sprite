@@ -72,8 +72,8 @@ class Atlas(object):
         self.components = {}
         if self._header:
             self._add_header()
-        for name, info in oldcomponents.items():
-            self.add_component(name, info.img, extra_meta=info.extra_meta)
+        for component in oldcomponents.values():
+            self.add_component(component)
 
     def _add_header(self):
         header = self._header.format(size="{0}x{1}".format(*self.size))
